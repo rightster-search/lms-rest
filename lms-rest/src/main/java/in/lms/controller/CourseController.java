@@ -3,7 +3,11 @@ package in.lms.controller;
 import java.util.List;
 import java.util.Set;
 
+import in.lms.common.GenericResponseConstants;
 import in.lms.model.Course;
+import in.lms.model.CourseSchedule;
+import in.lms.model.CourseScheduleJSON;
+import in.lms.model.GenericResponse;
 import in.lms.service.CourseSkeletonService;
 import in.lms.service.CoursesService;
 
@@ -29,7 +33,7 @@ public class CourseController {
 
 	@Autowired(required = true)
 	@Qualifier(value = "coursesServiceBean")
-	public void setAccountService(CoursesService courseService) {
+	public void setCourseService(CoursesService courseService) {
 		this.courseService = courseService;
 	}
 
@@ -48,6 +52,51 @@ public class CourseController {
 			return null;
 		}
 	}*/
+	
+	@RequestMapping(value = CourseRestURIConstants.ADD_SCHEDULE_TO_COURSE, method = RequestMethod.POST)
+	public @ResponseBody
+	GenericResponse saveSchedule(@RequestBody CourseScheduleJSON aSchedule) {
+		logger.info("Start add schedule call ----- ");
+		GenericResponse response = new GenericResponse();
+		try{
+			boolean flag =  courseService.saveASchedule(aSchedule);
+			if(flag)
+			{
+				response.setResponse(GenericResponseConstants.SUCCESS);
+				//response.setErrorMsg(null);
+			}else
+			{
+				response.setResponse(GenericResponseConstants.FAILURE);
+				response.setErrorMsg("Schedule couldnot be saved in DB");
+			}
+		}catch(Exception e)
+		{
+			logger.info(e.getStackTrace().toString());
+			response.setResponse(GenericResponseConstants.FAILURE);
+			response.setErrorMsg(e.getMessage());
+		}finally
+		{
+			return response;
+		}
+	}
+	
+	@RequestMapping(value = CourseRestURIConstants.GET_ALL_SCHEDULE_FOR_A_COURSE, method = RequestMethod.GET)
+	public @ResponseBody
+	List<CourseSchedule> getAllScheduleForACourse(@PathVariable("id") long courseId) {
+		logger.info("Start getAllCourses.");
+		List<CourseSchedule> courses = courseService.getAllScheduleForACourse(courseId);
+		
+		return courses ;
+	}
+	
+	@RequestMapping(value = CourseRestURIConstants.GET_SCHEDULE_BY_ID, method = RequestMethod.GET)
+	public @ResponseBody
+	CourseSchedule getScheduleById(@PathVariable("id") long schId) {
+		logger.info("Start getAllCourses.");
+		CourseSchedule sch = courseService.getScheduleById(schId);
+		
+		return sch ;
+	}
 	
 	@RequestMapping(value = CourseRestURIConstants.COURSE_SAVE, method = RequestMethod.POST)
 	public @ResponseBody

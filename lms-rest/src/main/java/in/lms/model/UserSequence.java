@@ -8,6 +8,8 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 public class UserSequence {
 
@@ -18,6 +20,7 @@ public class UserSequence {
 	private Long id;
 	// private String name;
 
+	@JsonIgnore
 	@OneToOne
 	private LoginEnvelope user;
 

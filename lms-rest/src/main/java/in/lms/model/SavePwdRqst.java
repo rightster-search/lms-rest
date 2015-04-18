@@ -30,7 +30,7 @@ public class SavePwdRqst {
 	public void setNewPWd(String newPWd) {
 		this.newPWd = newPWd;
 	}
-
+	
 	@Override
 	public String toString() {
 		return "SavePwdRqst [uid=" + uid + ", oldPwd=" + oldPwd + ", newPWd="

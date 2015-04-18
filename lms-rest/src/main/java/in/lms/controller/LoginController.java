@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import in.lms.common.GenericResponseConstants;
 import in.lms.common.HackError;
 import in.lms.common.MiscellaneousUtil;
 import in.lms.model.CourseCategoryEnvelope;
@@ -63,6 +64,7 @@ public class LoginController {
 			System.out.println("Generated cryptic pwd - " + crypticPwd);
 			if (crypticPwd != null) {
 				String userSessionID = MiscellaneousUtil.generateSessionID();
+				System.out.println("Session ID generated - "+userSessionID);
 				String authLink = requestBody.getAuthenticationLink();
 				authLink += "?userSessionID=" + userSessionID;
 
@@ -111,6 +113,7 @@ public class LoginController {
 				} catch (Exception e) {
 					logger.info(e.getStackTrace().toString());
 					response.setResponse("failure");
+					response.setErrorMsg(e.getMessage());
 				}
 
 			} else {
@@ -118,6 +121,7 @@ public class LoginController {
 			}
 		} catch (Exception e) {
 			response.setResponse("failure");
+			response.setErrorMsg(e.getMessage());
 		}
 
 		return response;
@@ -125,13 +129,14 @@ public class LoginController {
 
 	@RequestMapping(value = CourseRestURIConstants.LOGIN, method = RequestMethod.POST)
 	public @ResponseBody
-	LoginResponse login(@RequestBody LoginRequest requestBody) throws HackError {
+	LoginResponse login(@RequestBody LoginRequest requestBody) throws Exception {
 		/*
 		 * check whether userSessionId is attached in DB with the username now
 		 * check the username and passwd check whether the password is system
 		 * generated then in response set the flag.
 		 * 
-		 * generate the cSessionID save in Db , attach in the response.
+		 * generate the cSessionID save in Db , attach in the response. need to
+		 * return userid in response too.
 		 */
 		String userSessionID = requestBody.getUserSessionId();
 		String username = requestBody.getUsername();
@@ -154,21 +159,46 @@ public class LoginController {
 						List<PasswordWrapper> pwds = user.getPasswordList();
 						PasswordWrapper pwd = pwds.get(pwds.size() - 1);
 
-						String asessionID = MiscellaneousUtil
-								.generateSessionID();
+						//check for password match
+						String p1 = MiscellaneousUtil.encrypt(password);
+						if(!p1.equals(pwd.getPassword()))
+						{
+							// throw an error
+							throw new HackError("SomeBody trying to hack-in");
+						}
+						String asessionID = null;
+
+						boolean flag = false;
+						List<SessionWrapper> sesnLst = user.getSessionList();
+						if (sesnLst != null && !sesnLst.isEmpty()) {
+							SessionWrapper sn = sesnLst.get(sesnLst.size() - 1);
+							if (sn.getIsValid()) {
+								asessionID = sn.getSessionID();
+								flag = true;
+							}
+						}
+						boolean flag2 = false;
+
+						if (!flag) {
+							asessionID = MiscellaneousUtil.generateSessionID();
+
+							SessionWrapper aSn = new SessionWrapper();
+							aSn.setEnvelope(user);
+							aSn.setIsValid(true);
+							aSn.setSessionID(asessionID);
+
+							// add the session to the user.
+							user.getSessionList().add(aSn);
+							flag2 = miscellaneousService
+									.updateLoginEnvelope(user);
+
+						}
+						//write code to match password
 						response.setcSessionId(asessionID);
 						response.setIsUserGenerated(pwd.getIsSystemGenerated());
+						response.setUid(user.getSequenceNo().getId()+"");
 
-						SessionWrapper aSn = new SessionWrapper();
-						aSn.setEnvelope(user);
-						aSn.setIsValid(true);
-						aSn.setSessionID(asessionID);
-
-						// add the session to the user.
-						user.getSessionList().add(aSn);
-						boolean flag = miscellaneousService
-								.updateLoginEnvelope(user);
-						if (flag) {
+						if (flag || (!flag && flag2)) {
 							return response;
 						} else {
 							return null;
@@ -195,29 +225,60 @@ public class LoginController {
 						throw new HackError("SomeBody trying to hack-in");
 					} else {
 						if (sessionId.equals(userSessionID)) {
-							LoginResponse response = new LoginResponse();
-							List<PasswordWrapper> pwds = user.getPasswordList();
-							PasswordWrapper pwd = pwds.get(pwds.size() - 1);
-
-							String asessionID = MiscellaneousUtil
-									.generateSessionID();
-							response.setcSessionId(asessionID);
-							response.setIsUserGenerated(pwd
-									.getIsSystemGenerated());
-
-							SessionWrapper aSn = new SessionWrapper();
-							aSn.setEnvelope(user);
-							aSn.setIsValid(true);
-							aSn.setSessionID(asessionID);
+							// Need to move the repeatitive code to a method.
 
 							// remove the user session id as it has been used.
 							user.setUserSessionId(null);
 
-							// add the session to the user.
-							user.getSessionList().add(aSn);
-							boolean flag = miscellaneousService
+							LoginResponse response = new LoginResponse();
+							List<PasswordWrapper> pwds = user.getPasswordList();
+							PasswordWrapper pwd = pwds.get(pwds.size() - 1);
+
+							//check for password match
+							String p1 = MiscellaneousUtil.encrypt(password);
+							if(!p1.equals(pwd.getPassword()))
+							{
+								// throw an error
+								throw new HackError("SomeBody trying to hack-in");
+							}
+							String asessionID = null;
+
+							boolean flag = false;
+							List<SessionWrapper> sesnLst = user
+									.getSessionList();
+							if (sesnLst != null && !sesnLst.isEmpty()) {
+								SessionWrapper sn = sesnLst
+										.get(sesnLst.size() - 1);
+								if (sn.getIsValid()) {
+									asessionID = sn.getSessionID();
+									flag = true;
+								}
+							}
+							boolean flag2 = false;
+
+							if (!flag) {
+								asessionID = MiscellaneousUtil
+										.generateSessionID();
+
+								SessionWrapper aSn = new SessionWrapper();
+								aSn.setEnvelope(user);
+								aSn.setIsValid(true);
+								aSn.setSessionID(asessionID);
+
+								// add the session to the user.
+								user.getSessionList().add(aSn);
+
+							}
+
+							flag2 = miscellaneousService
 									.updateLoginEnvelope(user);
-							if (flag) {
+
+							response.setcSessionId(asessionID);
+							response.setIsUserGenerated(pwd
+									.getIsSystemGenerated());
+							response.setUid(user.getSequenceNo().getId()+"");
+
+							if (flag || (!flag && flag2)) {
 								return response;
 							} else {
 								return null;
@@ -237,16 +298,61 @@ public class LoginController {
 
 	@RequestMapping(value = CourseRestURIConstants.SAVEPWD, method = RequestMethod.POST)
 	public @ResponseBody
-	GenericResponse savePassword(@RequestBody SavePwdRqst requestBody) {
+	GenericResponse savePassword(@RequestBody SavePwdRqst requestBody) throws Exception {
 
 		/*
-		 * check whether userSessionId is attached in DB with the username now
-		 * check the username and passwd check whether the password is system
-		 * generated then in response set the flag.
-		 * 
-		 * generate the cSessionID save in Db , attach in the response.
+		 * with userid and old password get the user object, now make the old
+		 * password invalid, add the new password , save the user instance in db
+		 * , if its saved return success.
 		 */
-		return null;
+		GenericResponse response = new GenericResponse();
+
+		String uid = requestBody.getUid();
+		if (uid != null) {
+			LoginEnvelope user = miscellaneousService
+					.getLoginEnvelopeFromUID(uid);
+			if (user != null) {
+				List<PasswordWrapper> pwds = user.getPasswordList();
+				if (pwds != null && !pwds.isEmpty()) {
+					PasswordWrapper oldPwd = pwds.get(pwds.size() - 1);
+					String p1 = MiscellaneousUtil.encrypt(requestBody.getOldPwd());
+					if (p1.equals(oldPwd.getPassword())) {
+						PasswordWrapper newPwd = new PasswordWrapper();
+						newPwd.setCreationDate(MiscellaneousUtil
+								.dateTrial(new Date()));
+						newPwd.setEnvelope(user);
+						newPwd.setPassword(MiscellaneousUtil.encrypt(requestBody.getNewPWd()));
+						newPwd.setIsSystemGenerated(false);
+						user.getPasswordList().add(newPwd);
+
+						boolean flag = miscellaneousService
+								.updateLoginEnvelope(user);
+
+						if (flag) {
+							response.setResponse(GenericResponseConstants.SUCCESS);
+						} else {
+							response.setResponse(GenericResponseConstants.FAILURE);
+							response.setErrorMsg("New Password couldnot be saved in DB");
+						}
+
+					} else {
+						response.setResponse(GenericResponseConstants.FAILURE);
+						response.setErrorMsg("OLD Password sent in request doesnot match old password present in DB");
+					}
+				} else {
+					response.setResponse(GenericResponseConstants.FAILURE);
+					response.setErrorMsg("OLD Password not present in DB");
+				}
+			} else {
+				response.setResponse(GenericResponseConstants.FAILURE);
+				response.setErrorMsg("Bogus Call as request doesnot have a valid uid!!");
+			}
+		} else {
+			response.setResponse(GenericResponseConstants.FAILURE);
+			response.setErrorMsg("Bogus Call as request doesnot have uid!!");
+		}
+
+		return response;
 	}
 
 	/*

@@ -6,6 +6,7 @@ import in.lms.model.CourseCategory;
 import in.lms.model.CourseCategoryEnvelope;
 import in.lms.model.LoginEnvelope;
 import in.lms.model.SessionWrapper;
+import in.lms.model.TestModel;
 
 public interface MiscellaneousService {
 	
@@ -24,5 +25,11 @@ public interface MiscellaneousService {
 	public SessionWrapper getSessionWrapper(String sessionId);
 	
 	public Boolean updateSessionWrapper(SessionWrapper session);
+	
+	public LoginEnvelope getLoginEnvelopeFromUID(String uid);
+	
+	public Boolean addTestModel(TestModel demo);
+	
+	public List<TestModel> getTestModel();
 
 }

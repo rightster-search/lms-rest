@@ -4,6 +4,7 @@ public class LoginResponse {
 
 	private String cSessionId;
 	private Boolean isUserGenerated;
+	private String uid;
 
 	public String getcSessionId() {
 		return cSessionId;
@@ -21,9 +22,18 @@ public class LoginResponse {
 		this.isUserGenerated = isUserGenerated;
 	}
 
+	public String getUid() {
+		return uid;
+	}
+
+	public void setUid(String uid) {
+		this.uid = uid;
+	}
+
 	@Override
 	public String toString() {
-		return "LoginResponse [cSessionId=" + cSessionId + "]";
+		return "LoginResponse [cSessionId=" + cSessionId + ", isUserGenerated="
+				+ isUserGenerated + ", uid=" + uid + "]";
 	}
 
 }

@@ -54,14 +54,14 @@ public class CourseSkeletonServiceImpl implements CourseSkeletonService {
 				aCourse.setCreationDate(new Date());
 				aCourse.setDescription("Demo description");
 				aCourse.setIsActive(true);
-				aCourse.setBigImageURL("http://type1-big.com");
-				aCourse.setSmallImageURL("http://type1-small.com");
+				aCourse.setImageURL("http://type1-big.com");
+				//aCourse.setSmallImageURL("http://type1-small.com");
 				
 				aCourse.setCourseCategory("JAVA");
 				aCourse.setCourseType(CourseTypeConstants.ONLINE);
 				aCourse.setDurationOfCourse(40);
 				aCourse.setPrice(new BigDecimal("12000.00"));
-				aCourse.setTitle("JAVA Core is th way to go");
+				aCourse.setTitle("JAVA Core is the way to go");
 				
 				Set<SubSection> subSections = aCourse.getSubsections();
 				SubSection subSection = new SubSection();
@@ -87,12 +87,13 @@ public class CourseSkeletonServiceImpl implements CourseSkeletonService {
 				CourseSchedule sch = new CourseSchedule();
 				sch.setCourse(aCourse);
 				sch.setTypeOfCourse(ScheduleType.WEEKENDS);
+				sch.setNoOfWeeks(6);
 				Set<AtomicCourseSchedule> detailedSch = sch.getSubSchedule();
 				AtomicCourseSchedule detSch = new AtomicCourseSchedule();
 				detSch.setSchedule(sch);
 				detSch.setDayOfWeek(DayOfWeekConstant.SATURDAY);
 				detSch.setStartTime(java.sql.Time.valueOf( "08:05:00" ));
-				detSch.setStartTime(java.sql.Time.valueOf( "14:05:00" ));
+				detSch.setEndTime(java.sql.Time.valueOf( "14:05:00" ));
 				detailedSch.add(detSch);
 				schedules.add(sch);
 

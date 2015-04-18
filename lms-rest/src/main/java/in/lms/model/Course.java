@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -23,6 +24,7 @@ import org.hibernate.annotations.CollectionId;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.DateSerializer;
 
@@ -48,20 +50,23 @@ public class Course {
 	 */
 	@ElementCollection
 	private Collection<Date> updateDates = new ArrayList<Date>();
-	private String bigImageURL;
-	private String smallImageURL;
+	// only one image url
+	/*
+	 * private String bigImageURL; private String smallImageURL;
+	 */
+	private String imageURL;
 	private Boolean isActive;
 	private String description;
 	private String title;
 	private String courseType;// online, corporate
 	private String courseCategory;// java, big data
-	
-	private int durationOfCourse ;
+
+	private int durationOfCourse;
 
 	@ElementCollection
 	private Collection<String> keyWords = new ArrayList<String>();
 
-	@Column(name = "GROSS_PRICE", precision = 9, scale = 3)
+	@Column(name = "GROSS_PRICE", precision = 12, scale = 3)
 	private BigDecimal price;// may have problem with json and hibernate mapping
 
 	// @OneToOne
@@ -69,12 +74,51 @@ public class Course {
 
 	// private Set<Trainers> trainers ;
 
-	@OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	Set<SubSection> subsections = new HashSet<SubSection>();
+	// to be added
+	// course can have a video url. - upload facility
+	// pre-requisities,target audience,student reviews for course.(Important)
+	private String preRequisities;
+	private String targetAudience;
 
+	private String videoUrl;
+
+	/*
+	 * @ElementCollection private List<String> startDate = new
+	 * ArrayList<String>();
+	 */
+
+	public String getPreRequisities() {
+		return preRequisities;
+	}
+
+	public void setPreRequisities(String preRequisities) {
+		this.preRequisities = preRequisities;
+	}
+
+	public String getTargetAudience() {
+		return targetAudience;
+	}
+
+	public void setTargetAudience(String targetAudience) {
+		this.targetAudience = targetAudience;
+	}
+
+	public String getVideoUrl() {
+		return videoUrl;
+	}
+
+	public void setVideoUrl(String videoUrl) {
+		this.videoUrl = videoUrl;
+	}
+
+	@OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	Set<SubSection> subsections = new HashSet<SubSection>();//Need to make this a list as it needs to be ordered.
+
+	@JsonIgnore
 	@OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	Set<CourseSchedule> courseSchedules = new HashSet<CourseSchedule>();
 
+	@JsonIgnore
 	@OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	Set<CustomFields> customFields = new HashSet<CustomFields>();
 
@@ -131,8 +175,7 @@ public class Course {
 	@Override
 	public String toString() {
 		return "Course [id=" + id + ", creationDate=" + creationDate
-				+ ", updateDates=" + updateDates + ", bigImageURL="
-				+ bigImageURL + ", smallImageURL=" + smallImageURL
+				+ ", updateDates=" + updateDates + ", imageURL=" + imageURL
 				+ ", isActive=" + isActive + ", description=" + description
 				+ ", title=" + title + ", courseType=" + courseType
 				+ ", courseCategory=" + courseCategory + ", keyWords="
@@ -141,21 +184,20 @@ public class Course {
 				+ ", customFields=" + customFields + "]";
 	}
 
-	public String getBigImageURL() {
-		return bigImageURL;
+	public String getImageURL() {
+		return imageURL;
 	}
 
-	public void setBigImageURL(String bigImageURL) {
-		this.bigImageURL = bigImageURL;
+	public void setImageURL(String imageURL) {
+		this.imageURL = imageURL;
 	}
 
-	public String getSmallImageURL() {
-		return smallImageURL;
-	}
-
-	public void setSmallImageURL(String smallImageURL) {
-		this.smallImageURL = smallImageURL;
-	}
+	/*
+	 * public String getSmallImageURL() { return smallImageURL; }
+	 * 
+	 * public void setSmallImageURL(String smallImageURL) { this.smallImageURL =
+	 * smallImageURL; }
+	 */
 
 	public String getTitle() {
 		return title;
@@ -204,6 +246,5 @@ public class Course {
 	public Set<CourseSchedule> getCourseSchedules() {
 		return courseSchedules;
 	}
-	
-	
+
 }

@@ -3,9 +3,11 @@ package in.lms.service;
 import in.lms.model.AtomicCourseSchedule;
 import in.lms.model.Course;
 import in.lms.model.CourseSchedule;
+import in.lms.model.CourseScheduleJSON;
 import in.lms.model.CustomFields;
 import in.lms.model.SubSection;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -15,6 +17,7 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import com.spring.hibernate.rest.Account;
 import com.spring.hibernate.rest.Bookmark;
@@ -41,30 +44,21 @@ public class CoursesServiceImpl implements CoursesService {
 			}
 		}
 
-		Set<CustomFields> flds = aCourse.getCustomFields();
-		for (CustomFields aFld : flds) {
-			if (aFld.getCourse() == null) {
-				aFld.setCourse(aCourse);
-			}
-		}
-		
-		Set<CourseSchedule> courseSchs = aCourse.getCourseSchedules();
+		/*
+		 * Set<CustomFields> flds = aCourse.getCustomFields(); for (CustomFields
+		 * aFld : flds) { if (aFld.getCourse() == null) {
+		 * aFld.setCourse(aCourse); } }
+		 */
 
-		for (CourseSchedule sec : courseSchs) {
-			if (sec.getCourse() == null) {
-				sec.setCourse(aCourse);
-			}
-			Set<AtomicCourseSchedule> temp = sec.getSubSchedule();
-			for(AtomicCourseSchedule tmp : temp)
-			{
-				if(tmp.getSchedule() == null)
-				{
-					tmp.setSchedule(sec);
-				}
-			}
-		}
-		
-		
+		/*
+		 * Set<CourseSchedule> courseSchs = aCourse.getCourseSchedules();
+		 * 
+		 * for (CourseSchedule sec : courseSchs) { if (sec.getCourse() == null)
+		 * { sec.setCourse(aCourse); } Set<AtomicCourseSchedule> temp =
+		 * sec.getSubSchedule(); for(AtomicCourseSchedule tmp : temp) {
+		 * if(tmp.getSchedule() == null) { tmp.setSchedule(sec); } } }
+		 */
+
 		aSession.save(aCourse);
 		aSession.getTransaction().commit();
 		aSession.close();
@@ -122,5 +116,60 @@ public class CoursesServiceImpl implements CoursesService {
 		aSession.getTransaction().commit();
 		aSession.close();
 		return courseList;
+	}
+
+	public Boolean saveASchedule(CourseScheduleJSON aSchedule) {
+		Session aSession = this.sessionFactory.openSession();
+		aSession.beginTransaction();
+		Course aCourse = (Course) aSession.get(Course.class,
+				aSchedule.getCourseId());
+		System.out.println(aCourse);
+
+		CourseSchedule sch = aSchedule.getSchedule();
+		if (sch.getCourse() == null) {
+			sch.setCourse(aCourse);
+		}
+
+		Set<AtomicCourseSchedule> list = sch.getSubSchedule();
+		for (AtomicCourseSchedule aObj : list) {
+			if (aObj.getSchedule() == null) {
+				aObj.setSchedule(sch);
+			}
+		}
+
+		aCourse.getCourseSchedules().add(sch);
+		aSession.merge(aCourse);
+		aSession.getTransaction().commit();
+		aSession.close();
+		return true;
+	}
+
+	public List<CourseSchedule> getAllScheduleForACourse(long courseId) {
+		Session aSession = this.sessionFactory.openSession();
+		aSession.beginTransaction();
+		Course aCourse = (Course) aSession.get(Course.class, courseId);
+		// System.out.println(aCourse);
+		List<CourseSchedule> list = new ArrayList<CourseSchedule>();
+		if (aCourse != null) {
+			Set<CourseSchedule> set = aCourse.getCourseSchedules();
+
+			list.addAll(set);
+		}
+		aSession.getTransaction().commit();
+		aSession.close();
+
+		return list;
+	}
+
+	public CourseSchedule getScheduleById(long schId) {
+		Session aSession = this.sessionFactory.openSession();
+		aSession.beginTransaction();
+		CourseSchedule aSch = (CourseSchedule) aSession.get(CourseSchedule.class, schId);
+		// System.out.println(aCourse);
+		
+		aSession.getTransaction().commit();
+		aSession.close();
+
+		return aSch;
 	}
 }

@@ -151,9 +151,9 @@ public class EmailUtil {
 		}
 	}
 
-	public static boolean sendEmailAWS(String toEmail) throws AddressException, MessagingException {
-		final String BODY = "This email was sent through the Amazon SES SMTP interface by using Java. \n Donot reply to this";
-	    final String SUBJECT = "Amazon SES test (SMTP interface accessed using Java)";
+	public static boolean sendEmailAWS(String toEmail, String subject, String body) throws AddressException, MessagingException {
+		//final String BODY = "This email was sent through the Amazon SES SMTP interface by using Java. \n Donot reply to this";
+	    //final String SUBJECT = "Amazon SES test (SMTP interface accessed using Java)";
 	    
 	    // Supply your SMTP credentials below. Note that your SMTP credentials are different from your AWS credentials.
 	    final String SMTP_USERNAME = "AKIAIRN4KUYONGFDKOIQ";  // Replace with your SMTP username.
@@ -239,10 +239,14 @@ public class EmailUtil {
 
         // Create a message with the specified information. 
         MimeMessage msg = new MimeMessage(session);
+        msg.addHeader("Content-type", "text/HTML; charset=UTF-8");
+		msg.addHeader("format", "flowed");
+		msg.addHeader("Content-Transfer-Encoding", "8bit");
         msg.setFrom(new InternetAddress(fromEmail));
         msg.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
-        msg.setSubject(SUBJECT);
-        msg.setContent(BODY,"text/plain");
+        msg.setSentDate(new Date());
+        msg.setSubject(subject, "UTF-8");
+        msg.setContent(body,"text/html; charset=utf-8");
             
         // Create a transport.        
         Transport transport = session.getTransport();

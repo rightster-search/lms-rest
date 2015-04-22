@@ -1,9 +1,12 @@
 package in.lms.controller;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import in.lms.common.EmailClientConstant;
 import in.lms.common.GenericResponseConstants;
 import in.lms.common.HackError;
 import in.lms.common.MiscellaneousUtil;
@@ -35,6 +38,20 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class LoginController {
+	
+	private static String emaiClient = "" ;
+	
+	static{
+		InputStream strm =  LoginController.class.getClassLoader().getResourceAsStream("email-client.txt");
+		byte[] bytes = new byte[1028];
+		try {
+			strm.read(bytes);
+			emaiClient = new String(bytes, "UTF-8");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	private MiscellaneousService miscellaneousService;
 	private static Object logOutObject = new Object();
@@ -105,8 +122,14 @@ public class LoginController {
 								+ " <h4> \n"
 								+ "<h2>Click on the activation Link to log-on - HAPPY LEARNING -<h2>";
 
+						if(emaiClient.equals(EmailClientConstant.GMAIL_SMTP) || emaiClient.isEmpty())
+						{
 						EmailUtil.sendEmail(requestBody.getEmailId(), subject,
 								emailBody);
+						}else
+						{
+							EmailUtil.sendEmailAWS(requestBody.getEmailId(),subject,emailBody);
+						}
 						response.setResponse("success");
 
 					}

@@ -162,7 +162,7 @@ public class TestController {
 		}
 	}
 	
-	@RequestMapping(value = CourseRestURIConstants.SEND_MAIL, method = RequestMethod.GET)
+	@RequestMapping(value = CourseRestURIConstants.SEND_MAIL, method = RequestMethod.POST)
 	public @ResponseBody
 	Boolean sendMail(@RequestBody TestEmailRequest emailRequest) {
 		try{

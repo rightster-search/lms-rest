@@ -15,8 +15,10 @@ import in.lms.model.CourseCategory;
 import in.lms.model.CourseCategoryEnvelope;
 import in.lms.model.CourseSchedule;
 import in.lms.model.TestModel;
+import in.lms.request.TestEmailRequest;
 import in.lms.service.CourseSkeletonService;
 import in.lms.service.MiscellaneousService;
+import in.mail.EmailUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,6 +159,19 @@ public class TestController {
 		} else {
 			return "You failed to upload " + name
 					+ " because the file was empty.";
+		}
+	}
+	
+	@RequestMapping(value = CourseRestURIConstants.SEND_MAIL, method = RequestMethod.GET)
+	public @ResponseBody
+	Boolean sendMail(@RequestBody TestEmailRequest emailRequest) {
+		try{
+		return EmailUtil.sendEmailAWS(emailRequest.getEmailId());
+
+		}catch(Exception e)
+		{
+			System.out.println(e);
+			return false;
 		}
 	}
 

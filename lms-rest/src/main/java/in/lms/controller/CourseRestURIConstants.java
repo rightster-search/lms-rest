@@ -38,5 +38,7 @@ public class CourseRestURIConstants {
     public static final String LOGIN = "/rest/login/enter";
     public static final String SAVEPWD = "/rest/login/savepwd";
     public static final String LOGOUT = "/rest/logout";
+    
+    public static final String SEND_MAIL = "/send/mail";
 
 }

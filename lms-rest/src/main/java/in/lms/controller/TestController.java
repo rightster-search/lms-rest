@@ -166,7 +166,7 @@ public class TestController {
 	public @ResponseBody
 	Boolean sendMail(@RequestBody TestEmailRequest emailRequest) {
 		try{
-		return EmailUtil.sendEmailAWS(emailRequest.getEmailId());
+		return EmailUtil.sendEmailAWS(emailRequest.getEmailId(),"","");
 
 		}catch(Exception e)
 		{

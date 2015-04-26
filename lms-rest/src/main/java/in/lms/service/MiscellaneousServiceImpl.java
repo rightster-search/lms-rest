@@ -24,7 +24,13 @@ import in.lms.model.TestModel;
 import in.lms.model.UserRole;
 import in.lms.model.UserSequence;
 
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -386,6 +392,50 @@ public class MiscellaneousServiceImpl implements MiscellaneousService {
 		if (empList == null)
 			empList = new ArrayList<TestModel>();
 		return empList;
+	}
+
+	public byte[] getImage(String folderPath, long courseId) {
+		String pathToImage = folderPath.trim()+File.separator+courseId;
+		File path = new File(pathToImage);
+		byte[] bytesArr = null;
+		
+		if(path.isDirectory())
+		{
+			FilenameFilter imageFilter = new FilenameFilter() {
+				public boolean accept(File dir, String name) {
+					String lowercaseName = name.toLowerCase();
+					if (lowercaseName.endsWith(".jpg")) {
+						return true;
+					} else {
+						return false;
+					}
+				}
+			};
+			
+			File[] files = path.listFiles(imageFilter);
+			File specialOne = null;
+			
+			for(File aFile :files)
+			{
+				if(!aFile.isDirectory())
+				{
+					specialOne = aFile;
+					break;
+				}
+			}
+			
+			if(specialOne != null)
+			{
+				Path pathTmp = Paths.get(specialOne.getAbsolutePath());
+				try {
+					bytesArr = Files.readAllBytes(pathTmp);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		return bytesArr;
 	}
 	
 

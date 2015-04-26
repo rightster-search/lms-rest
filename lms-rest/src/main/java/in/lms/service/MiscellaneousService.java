@@ -31,5 +31,7 @@ public interface MiscellaneousService {
 	public Boolean addTestModel(TestModel demo);
 	
 	public List<TestModel> getTestModel();
+	
+	public byte[] getImage(String folderPath, long courseId);
 
 }

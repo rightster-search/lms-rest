@@ -3,9 +3,17 @@ package in.lms.controller;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 import in.lms.common.DayOfWeekConstant;
 import in.lms.common.ScheduleType;
@@ -25,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -36,6 +45,20 @@ import org.springframework.web.multipart.MultipartFile;
 public class TestController {
 
 	private MiscellaneousService miscellaneousService;
+	
+	private static String uploadingFolder = "" ;
+	
+	static{
+		InputStream strm =  LoginController.class.getClassLoader().getResourceAsStream("upload-folder.txt");
+		byte[] bytes = new byte[2048];
+		try {
+			strm.read(bytes);
+			uploadingFolder = new String(bytes);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	@Autowired(required = true)
 	@Qualifier(value = "miscServiceBean")
@@ -138,29 +161,51 @@ public class TestController {
 
 	}
 
-	@RequestMapping(value = "/upload", method = RequestMethod.POST)
+	@RequestMapping(value = "/upload/course/image/{courseid}", method = RequestMethod.POST)
 	public @ResponseBody
-	String upload(@RequestParam("file") MultipartFile file) {
-		String name = "test11";
+	String uploadImage(@RequestParam("file") MultipartFile file,@PathVariable("courseid") long courseId,
+			@RequestParam("name") String filename,@RequestParam("extension") String extension) {
+		//String name = "test11";
+		String dirPath = uploadingFolder.trim()+File.separator+courseId+"";
+		String str1 = uploadingFolder;
+		str1= str1+"/"+courseId;
+		String str = uploadingFolder+"/"+courseId+"";
+		System.out.println(dirPath);
+		System.out.println(str1);
+		File dir = new File(dirPath);
+		if(!dir.exists())
+		{
+			boolean directory = dir.mkdir();
+		}
 		if (!file.isEmpty()) {
 			try {
 				byte[] bytes = file.getBytes();
+				String fileFullPAth = uploadingFolder.trim()+File.separator+courseId+""+
+						File.separator
+						+ filename + "."+extension;
+				System.out.println(fileFullPAth);
 				BufferedOutputStream stream = new BufferedOutputStream(
 						new FileOutputStream(new File(
-								"C:/Users/adutta/Desktop/office_work/lms/upload/"
-										+ name + "-uploaded.pdf")));
+								fileFullPAth)));
 				stream.write(bytes);
 				stream.close();
-				return "You successfully uploaded " + name + " into " + name
-						+ "-uploaded !";
+				return "You successfully uploaded " ;
 			} catch (Exception e) {
-				return "You failed to upload " + name + " => " + e.getMessage();
+				return "You failed to upload "+" => " + e.getMessage();
 			}
 		} else {
-			return "You failed to upload " + name
+			return "You failed to upload " 
 					+ " because the file was empty.";
 		}
 	}
+	
+	@RequestMapping(value = "/download/course/image/{courseid}", method = RequestMethod.GET)
+    public HttpEntity<byte[]> getDocument(@PathVariable("courseid") long courseId) {         
+        // send it back to the client
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.IMAGE_JPEG);
+        return new ResponseEntity<byte[]>(miscellaneousService.getImage(uploadingFolder.trim(), courseId), httpHeaders, HttpStatus.OK);
+    }
 	
 	@RequestMapping(value = CourseRestURIConstants.SEND_MAIL, method = RequestMethod.POST)
 	public @ResponseBody

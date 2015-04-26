@@ -1,7 +1,9 @@
 package in.lms.model;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -23,6 +25,10 @@ public class UserSequence {
 	@JsonIgnore
 	@OneToOne
 	private LoginEnvelope user;
+	
+	/*@JsonIgnore
+	@OneToOne(fetch = FetchType.EAGER, mappedBy = "user", cascade = CascadeType.ALL)
+	private Student student;*/
 
 	public Long getId() {
 		return id;
